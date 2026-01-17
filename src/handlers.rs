@@ -8,7 +8,6 @@ use sqlx::PgPool;
 use tokio::sync::broadcast;
 use futures::{sink::SinkExt, stream::StreamExt};
 use serde::Deserialize;
-use serde_json::json;
 
 use argon2::{
     password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
@@ -21,12 +20,12 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use crate::models::{
     AuthUser, Claims, Message as MessageModel, LoginRequest, LoginResponse,
     RegisterRequest, User, Channel, CreateMessage, UserPublic,
-    PrivateMessage, CreateDM, WsMessage
+    PrivateMessage, CreateDM, WsMessage, ClientTyping
 };
 
 const SECRET_KEY: &[u8] = b"SECRET_KEY";
 
-// --- 1. Giao diện & Auth (GIỮ NGUYÊN) ---
+// --- 1. Giao diện & Auth ---
 pub async fn handler_hello() -> Html<&'static str> {
     Html(include_str!("../index.html"))
 }
@@ -90,11 +89,10 @@ pub async fn get_history(_user: AuthUser, Query(params): Query<HistoryParams>, S
 pub struct DmHistoryParams { with_user: String }
 
 pub async fn get_dm_history(
-    user: AuthUser, // Người đang request
-    Query(params): Query<DmHistoryParams>, // Chat với ai?
+    user: AuthUser,
+    Query(params): Query<DmHistoryParams>,
     State(pool): State<PgPool>
 ) -> Json<Vec<PrivateMessage>> {
-    // Lấy tin nhắn 2 chiều: Tôi gửi Nó OR Nó gửi Tôi
     let msgs = sqlx::query_as!(
         PrivateMessage,
         "SELECT id, sender, receiver, content FROM private_messages
@@ -137,12 +135,13 @@ async fn handle_socket(socket: WebSocket, pool: PgPool, tx: broadcast::Sender<St
         while let Some(Ok(Message::Text(text))) = receiver.next().await {
             // Client gửi JSON, ta thử parse xem nó là loại nào
 
-            // TRƯỜNG HỢP 1: Chat Kênh (như cũ)
+            // TRƯỜNG HỢP 1: Chat Kênh
             if let Ok(input) = serde_json::from_str::<CreateMessage>(&text) {
+                // Lưu DB
                 let _ = sqlx::query!("INSERT INTO messages (channel_id, username, content) VALUES ($1, $2, $3)", input.channel_id, username, input.content)
                     .execute(&pool).await;
 
-                // Gửi dạng Enum Channel
+                // Gửi broadcast
                 let msg = WsMessage::Channel {
                     channel_id: input.channel_id,
                     username: username.clone(),
@@ -152,14 +151,29 @@ async fn handle_socket(socket: WebSocket, pool: PgPool, tx: broadcast::Sender<St
             }
             // TRƯỜNG HỢP 2: Chat Riêng (DM)
             else if let Ok(dm_input) = serde_json::from_str::<CreateDM>(&text) {
+                // Lưu DB
                 let _ = sqlx::query!("INSERT INTO private_messages (sender, receiver, content) VALUES ($1, $2, $3)", username, dm_input.receiver, dm_input.content)
                     .execute(&pool).await;
 
-                // Gửi dạng Enum DM
+                // Gửi broadcast
                 let msg = WsMessage::DM {
                     sender: username.clone(),
                     receiver: dm_input.receiver,
                     content: dm_input.content
+                };
+                let _ = tx.send(serde_json::to_string(&msg).unwrap());
+            }
+            // TRƯỜNG HỢP 3: Typing (Đang gõ...)
+            else if let Ok(typing) = serde_json::from_str::<ClientTyping>(&text) {
+                // KHÔNG LƯU DB, chỉ bắn tin hiệu
+                let msg = WsMessage::Typing {
+                    username: username.clone(),
+                    channel_id: typing.channel_id,
+                    sender: if typing.receiver.is_some() {
+                        Some(username.clone())
+                    } else {
+                        None
+                    },
                 };
                 let _ = tx.send(serde_json::to_string(&msg).unwrap());
             }

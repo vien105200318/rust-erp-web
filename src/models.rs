@@ -1,3 +1,5 @@
+use std::ffi::CString;
+use std::sync::mpsc::{Receiver, Sender};
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use axum::{
@@ -121,8 +123,14 @@ pub struct CreateDM{
     pub content: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(tag = "type")]
+#[derive(Deserialize, Debug)]
+pub struct ClientTyping{
+    pub channel_id: Option<i64>,
+    pub receiver: Option<String>,
+}
+
+#[derive(Serialize, Debug, Clone)]
+#[serde(tag = "type", rename_all = "snake_case")]
 pub enum WsMessage {
     Channel {
         channel_id: i64,
@@ -134,5 +142,10 @@ pub enum WsMessage {
         receiver: String,
         content: String,
     },
+    Typing {
+        username: String,
+        channel_id: Option<i64>,
+        sender: Option<String>,
+    }
 }
 

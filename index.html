@@ -5,448 +5,240 @@
     <title>Discord Clone</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
     <style>
-        /* --- DESIGN SYSTEM --- */
-        :root {
-            --bg-dark: #313338;       /* Nền chat chính */
-            --bg-sidebar: #2b2d31;    /* Nền cột kênh/members */
-            --bg-header: #313338;     /* Header */
-            --bg-tertiary: #1e1f22;   /* Nền input/panel */
-            --text-normal: #dbdee1;
-            --text-header: #f2f3f5;
-            --text-muted: #949ba4;
-            --accent: #5865f2;        /* Màu tím Discord */
-            --accent-hover: #4752c4;
-            --danger: #da373c;
-            --hover-bg: #3f4147;
-            --active-bg: #404249;
-            --divider: #1e1f22;
-        }
-
+        /* (Giữ nguyên CSS cũ) */
+        :root { --bg-dark: #313338; --bg-sidebar: #2b2d31; --bg-header: #313338; --bg-tertiary: #1e1f22; --text-normal: #dbdee1; --text-header: #f2f3f5; --text-muted: #949ba4; --accent: #5865f2; --accent-hover: #4752c4; --danger: #da373c; --hover-bg: #3f4147; --active-bg: #404249; }
         * { box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-dark); color: var(--text-normal); margin: 0; height: 100vh; overflow: hidden; display: flex; justify-content: center; align-items: center; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; } ::-webkit-scrollbar-track { background-color: #2b2d31; border-radius: 4px; } ::-webkit-scrollbar-thumb { background-color: #1a1b1e; border-radius: 4px; }
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-dark);
-            color: var(--text-normal);
-            margin: 0; height: 100vh;
-            overflow: hidden;
-            display: flex; justify-content: center; align-items: center;
-        }
-
-        /* Scrollbar Đẹp */
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background-color: #2b2d31; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb { background-color: #1a1b1e; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background-color: #111214; }
-
-        /* --- LOGIN FORM --- */
-        #auth-screen {
-            background-color: var(--bg-dark);
-            padding: 32px;
-            border-radius: 5px;
-            width: 480px;
-            text-align: center;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.24);
-        }
+        #auth-screen { background-color: var(--bg-dark); padding: 32px; border-radius: 5px; width: 480px; text-align: center; box-shadow: 0 8px 16px rgba(0,0,0,0.24); }
         .auth-header { font-size: 24px; font-weight: 700; color: var(--text-header); margin-bottom: 8px; }
-        .auth-sub { color: var(--text-muted); margin-bottom: 20px; font-size: 16px; }
+        .input-group { text-align: left; margin-bottom: 16px; } .input-field { width: 100%; padding: 10px; border-radius: 3px; border: none; background-color: var(--bg-tertiary); color: var(--text-normal); height: 40px; }
+        .btn-full { width: 100%; padding: 10px; border-radius: 3px; border: none; cursor: pointer; font-weight: 600; color: white; margin-top: 10px; height: 44px; background-color: var(--accent); }
 
-        .input-group { text-align: left; margin-bottom: 16px; }
-        .input-label { display: block; color: var(--text-muted); font-size: 12px; font-weight: 700; text-transform: uppercase; margin-bottom: 8px; }
-        .input-field {
-            width: 100%; padding: 10px; border-radius: 3px; border: none;
-            background-color: var(--bg-tertiary); color: var(--text-normal); font-size: 16px; height: 40px;
-        }
-        .input-field:focus { outline: none; background-color: #1a1b1e; }
-
-        .btn-full {
-            width: 100%; padding: 10px; border-radius: 3px; border: none;
-            cursor: pointer; font-weight: 600; font-size: 16px; color: white;
-            transition: 0.2s; margin-top: 10px; height: 44px;
-        }
-        .btn-primary { background-color: var(--accent); }
-        .btn-primary:hover { background-color: var(--accent-hover); }
-        .link-text { color: #00a8fc; cursor: pointer; font-size: 14px; margin-top: 12px; display: inline-block; }
-        .link-text:hover { text-decoration: underline; }
-
-        /* --- APP LAYOUT --- */
         #app-screen { display: none; width: 100%; height: 100%; display: flex; }
-
-        /* 1. Sidebar (Kênh) */
-        #sidebar {
-            width: 240px;
-            background-color: var(--bg-sidebar);
-            display: flex; flex-direction: column;
-            border-top-left-radius: 8px;
-        }
-        .server-header {
-            height: 48px; padding: 12px 16px;
-            border-bottom: 1px solid #1f2023;
-            font-weight: 700; color: var(--text-header);
-            display: flex; align-items: center; justify-content: space-between;
-            cursor: pointer; transition: 0.2s;
-        }
-        .server-header:hover { background-color: #35373c; }
-
+        #sidebar { width: 240px; background-color: var(--bg-sidebar); display: flex; flex-direction: column; }
+        .server-header { height: 48px; padding: 12px 16px; border-bottom: 1px solid #1f2023; font-weight: 700; color: var(--text-header); display: flex; align-items: center; justify-content: space-between; }
         .channel-list { flex: 1; overflow-y: auto; padding: 10px 8px; }
-        .category-label {
-            padding: 8px 8px 4px 8px; color: var(--text-muted);
-            font-size: 11px; font-weight: 700; text-transform: uppercase;
+        .channel-item { padding: 6px 8px; margin-bottom: 2px; border-radius: 4px; cursor: pointer; color: var(--text-muted); font-weight: 500; display: flex; align-items: center; }
+        .channel-item.active { background-color: var(--active-bg); color: white; }
+
+        #main-chat { flex: 1; display: flex; flex-direction: column; background-color: var(--bg-dark); min-width: 0; }
+        header { height: 48px; padding: 0 16px; border-bottom: 1px solid #26272d; display: flex; align-items: center; justify-content: space-between; font-weight: 700; color: var(--text-header); }
+        #chat-container { flex: 1; overflow-y: auto; padding: 20px 0; display: flex; flex-direction: column; }
+        .message { padding: 4px 16px; display: flex; } .message:hover { background-color: #2e3035; }
+        .msg-avatar { width: 40px; height: 40px; border-radius: 50%; margin-right: 16px; }
+        .msg-username { color: white; font-weight: 500; } .msg-text { color: var(--text-normal); margin-top: 2px; }
+
+        #members-list { width: 240px; background-color: var(--bg-sidebar); display: flex; flex-direction: column; padding: 24px 8px; overflow-y: auto; }
+        .member-item { padding: 6px 8px; display: flex; align-items: center; border-radius: 4px; cursor: pointer; color: var(--text-muted); }
+        .member-avatar { width: 32px; height: 32px; border-radius: 50%; margin-right: 12px; }
+
+        /* Typing Indicator Styles (MỚI) */
+        #typing-indicator {
+            padding: 0 16px; margin-bottom: 4px; height: 20px;
+            font-size: 12px; font-weight: 700; color: var(--text-muted);
             display: flex; align-items: center;
         }
-        .category-label:hover { color: var(--text-normal); cursor: pointer; }
-
-        .channel-item {
-            padding: 6px 8px; margin-bottom: 2px; border-radius: 4px;
-            cursor: pointer; color: var(--text-muted); font-weight: 500;
-            display: flex; align-items: center; transition: 0.1s;
-        }
-        .channel-item:hover { background-color: var(--hover-bg); color: var(--text-header); }
-        .channel-item.active { background-color: var(--active-bg); color: white; }
-        .channel-icon { color: #80848e; margin-right: 6px; font-size: 18px; width: 20px; text-align: center; }
-
-        /* User Panel (Bottom Left) */
-        .user-panel {
-            background-color: #232428; height: 52px; padding: 0 8px;
-            display: flex; align-items: center; justify-content: space-between;
-        }
-        .user-info-group { display: flex; align-items: center; cursor: pointer; padding: 4px; border-radius: 4px; }
-        .user-info-group:hover { background-color: var(--hover-bg); }
-        .user-avatar-sm { width: 32px; height: 32px; border-radius: 50%; position: relative; }
-        .status-dot-sm { width: 10px; height: 10px; background: #23a559; border-radius: 50%; position: absolute; bottom: -2px; right: -2px; border: 2px solid #232428; }
-        .user-text { margin-left: 8px; font-size: 13px; font-weight: 600; color: white; }
-        .user-subtext { font-size: 11px; color: var(--text-muted); }
-        .panel-icons button {
-            background: none; border: none; color: var(--text-normal);
-            padding: 8px; border-radius: 4px; cursor: pointer;
-        }
-        .panel-icons button:hover { background-color: var(--hover-bg); }
-
-        /* 2. Main Chat */
-        #main-chat {
-            flex: 1; display: flex; flex-direction: column; background-color: var(--bg-dark); min-width: 0;
-        }
-        header {
-            height: 48px; padding: 0 16px;
-            border-bottom: 1px solid #26272d;
-            display: flex; align-items: center; justify-content: space-between;
-            color: var(--text-header); font-weight: 700;
-        }
-        .header-title { display: flex; align-items: center; gap: 8px; }
-        .header-desc { font-weight: 400; color: var(--text-muted); font-size: 14px; margin-left: 10px; border-left: 1px solid var(--text-muted); padding-left: 10px; }
-
-        #chat-container {
-            flex: 1; overflow-y: auto; padding: 20px 0; display: flex; flex-direction: column;
-        }
-
-        .message {
-            margin-top: 0; padding: 4px 16px; display: flex;
-        }
-        .message:hover { background-color: #2e3035; }
-
-        /* Chế độ hiển thị liên tiếp (Compact) - Optional, here we use cozy */
-        .msg-avatar {
-            width: 40px; height: 40px; border-radius: 50%; margin-right: 16px; margin-top: 2px; cursor: pointer;
-            transition: opacity 0.2s;
-        }
-        .msg-avatar:hover { opacity: 0.8; }
-
-        .msg-content-wrapper { flex: 1; }
-        .msg-header { display: flex; align-items: baseline; gap: 8px; }
-        .msg-username { color: white; font-weight: 500; cursor: pointer; }
-        .msg-username:hover { text-decoration: underline; }
-        .msg-time { font-size: 11px; color: var(--text-muted); font-weight: 400; }
-        .msg-text { color: var(--text-normal); font-size: 15px; line-height: 1.4; white-space: pre-wrap; margin-top: 2px; }
+        .typing-dots { animation: blink 1s infinite; }
+        @keyframes blink { 50% { opacity: 0; } }
 
         /* Input Area */
-        #input-area { padding: 0 16px 24px 16px; background-color: var(--bg-dark); }
-        .input-wrapper {
-            background-color: #383a40; border-radius: 8px; padding: 0 16px;
-            display: flex; align-items: center; min-height: 44px;
-        }
-        .btn-upload { background: none; border: none; color: var(--text-normal); cursor: pointer; margin-right: 12px; background-color: var(--text-normal); color: #383a40; border-radius: 50%; width: 24px; height: 24px; font-weight: bold; display: flex; align-items: center; justify-content: center; font-size: 16px; }
-        .input-wrapper input {
-            flex: 1; background: transparent; border: none;
-            color: var(--text-normal); font-size: 15px; padding: 10px 0;
-        }
-        .input-wrapper input:focus { outline: none; }
-        .input-icons { display: flex; gap: 12px; color: #b5bac1; font-size: 20px; cursor: pointer; }
-        .input-icons i:hover { color: var(--text-normal); }
-
-        /* 3. Members List */
-        #members-list {
-            width: 240px; background-color: var(--bg-sidebar);
-            display: flex; flex-direction: column;
-            padding: 24px 8px; overflow-y: auto;
-        }
-        .member-group-title {
-            padding: 0 8px; margin-bottom: 8px; color: var(--text-muted);
-            font-size: 12px; font-weight: 700; text-transform: uppercase;
-        }
-        .member-item {
-            padding: 6px 8px; display: flex; align-items: center;
-            border-radius: 4px; cursor: pointer; color: var(--text-muted); opacity: 0.9;
-        }
-        .member-item:hover { background-color: var(--hover-bg); color: var(--text-header); opacity: 1; }
-        .member-avatar-wrapper { position: relative; margin-right: 12px; }
-        .member-avatar { width: 32px; height: 32px; border-radius: 50%; }
-        .status-dot {
-            position: absolute; bottom: -2px; right: -2px;
-            width: 14px; height: 14px; background-color: var(--bg-sidebar); border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-        }
-        .dot-inner { width: 10px; height: 10px; background-color: #23a559; border-radius: 50%; } /* Online Green */
-        .member-name { font-weight: 500; font-size: 15px; }
-
+        #input-area { padding: 0 16px 24px 16px; }
+        .input-wrapper { background-color: #383a40; border-radius: 8px; padding: 0 16px; display: flex; align-items: center; min-height: 44px; }
+        .input-wrapper input { flex: 1; background: transparent; border: none; color: var(--text-normal); font-size: 15px; padding: 10px 0; outline: none; }
     </style>
 </head>
 <body>
 
 <div id="auth-screen">
-    <div class="auth-header">Chào mừng trở lại!</div>
-    <div class="auth-sub">Rất vui được gặp lại bạn!</div>
-
-    <div class="input-group">
-        <label class="input-label">Username</label>
-        <input type="text" id="username" class="input-field">
-    </div>
-    <div class="input-group">
-        <label class="input-label">Mật khẩu</label>
-        <input type="password" id="password" class="input-field">
-    </div>
-
-    <button class="btn-full btn-primary" onclick="handleAuth()" id="btn-submit">Đăng Nhập</button>
-    <div class="link-text" onclick="toggleMode()" id="btn-toggle">Cần một tài khoản? Đăng ký</div>
-    <p id="error-msg" style="color: var(--danger); margin-top: 10px; font-size: 14px;"></p>
+    <h2 class="auth-header">Chào mừng trở lại!</h2>
+    <div class="input-group"><input type="text" id="username" class="input-field" placeholder="Username"></div>
+    <div class="input-group"><input type="password" id="password" class="input-field" placeholder="Password"></div>
+    <button class="btn-full" onclick="handleAuth()" id="btn-submit">Đăng Nhập</button>
+    <div style="margin-top:10px; cursor:pointer; color:#00a8fc; font-size:14px;" onclick="toggleMode()">Chuyển chế độ</div>
+    <p id="error-msg" style="color: var(--danger); font-size: 14px; margin-top: 10px;"></p>
 </div>
 
 <div id="app-screen">
     <div id="sidebar">
-        <div class="server-header">
-            <span>Rust Server</span>
-            <i class="fa-solid fa-chevron-down" style="font-size: 12px;"></i>
-        </div>
-
-        <div class="channel-list">
-            <div class="category-label">
-                <i class="fa-solid fa-chevron-down" style="font-size: 10px; margin-right: 4px;"></i> Text Channels
-            </div>
-            <div id="channel-list-container">
-            </div>
-        </div>
-
-        <div class="user-panel">
-            <div class="user-info-group">
-                <div style="position: relative;">
-                    <img id="my-avatar" class="user-avatar-sm" src="">
-                    <div class="status-dot-sm"></div>
-                </div>
-                <div style="margin-left: 8px;">
-                    <div class="user-text" id="my-username">User</div>
-                    <div class="user-subtext">Online</div>
-                </div>
-            </div>
-            <div class="panel-icons">
-                <button title="Mute (Fake)"><i class="fa-solid fa-microphone"></i></button>
-                <button title="Deafen (Fake)"><i class="fa-solid fa-headphones"></i></button>
-                <button title="Logout" onclick="logout()" style="color: var(--danger);"><i class="fa-solid fa-right-from-bracket"></i></button>
-            </div>
+        <div class="server-header"><span>Rust Server</span></div>
+        <div class="channel-list" id="channel-list-container"></div>
+        <div style="background:#232428; padding:10px; display:flex; align-items:center; margin-top:auto;">
+            <img id="my-avatar" style="width:32px; height:32px; border-radius:50%; margin-right:8px;">
+            <div style="font-weight:bold; font-size:13px; color:white;" id="my-username">User</div>
         </div>
     </div>
 
     <div id="main-chat">
         <header>
-            <div class="header-title">
-                <i id="header-icon" class="fa-solid fa-hashtag" style="color: #80848e; font-size: 20px;"></i>
+            <div style="display:flex; align-items:center; gap:8px;">
+                <i id="header-icon" class="fa-solid fa-hashtag"></i>
                 <span id="current-target-name">general</span>
-            </div>
-            <div style="display: flex; gap: 16px; color: #b5bac1; font-size: 20px;">
-                <i class="fa-solid fa-bell"></i>
-                <i class="fa-solid fa-thumbtack"></i>
-                <i class="fa-solid fa-users"></i>
-                <div style="width: 200px; background: #1e1f22; border-radius: 4px; padding: 4px 8px; font-size: 13px; display: flex; align-items: center;">
-                    Search
-                    <i class="fa-solid fa-magnifying-glass" style="margin-left: auto; font-size: 12px;"></i>
-                </div>
             </div>
         </header>
 
         <div id="chat-container"></div>
 
+        <div id="typing-indicator"></div>
+
         <div id="input-area">
             <div class="input-wrapper">
-                <button class="btn-upload"><i class="fa-solid fa-plus" style="font-size: 12px;"></i></button>
-                <input type="text" id="msgInput" placeholder="Nhắn tin cho #general" onkeydown="if(event.key==='Enter') sendMsg()">
-                <div class="input-icons">
-                    <i class="fa-solid fa-gift"></i>
-                    <i class="fa-solid fa-note-sticky"></i>
-                    <i class="fa-regular fa-face-smile"></i>
-                </div>
+                <input type="text" id="msgInput" placeholder="Nhắn tin..."
+                       onkeydown="handleKeyDown(event)" oninput="handleInput()">
             </div>
         </div>
     </div>
 
     <div id="members-list">
-        <div class="member-group-title">Online — 99</div>
-        <div id="members-container">
-        </div>
+        <div style="font-size:12px; font-weight:700; color:#949ba4; margin-bottom:10px;">ONLINE</div>
+        <div id="members-container"></div>
     </div>
 </div>
 
 <script>
-    let isLoginMode = true;
-    let currentUser = null;
-    let token = localStorage.getItem('token');
-    let ws = null;
-    let chatMode = 'CHANNEL';
-    let chatTarget = 1;
+    let isLoginMode = true; let currentUser = null; let token = localStorage.getItem('token');
+    let ws = null; let chatMode = 'CHANNEL'; let chatTarget = 1;
+    let typingTimeout = null; // Để quản lý thời gian gửi sự kiện typing
 
     if (token) { currentUser = localStorage.getItem('username'); showChatScreen(); }
-
-    // Dùng bộ avatar mới đẹp hơn (Notion style)
-    function getAvatarUrl(username) { return `https://api.dicebear.com/9.x/notionists/svg?seed=${username}&backgroundColor=b6e3f4,c0aede,d1d4f9`; }
-    function logout() { localStorage.clear(); location.reload(); }
+    function getAvatarUrl(u) { return `https://api.dicebear.com/9.x/notionists/svg?seed=${u}&backgroundColor=b6e3f4,c0aede`; }
 
     // --- AUTH ---
-    function toggleMode() {
-        isLoginMode = !isLoginMode;
-        document.querySelector('.auth-header').innerText = isLoginMode ? "Chào mừng trở lại!" : "Tạo tài khoản";
-        document.querySelector('.auth-sub').innerText = isLoginMode ? "Rất vui được gặp lại bạn!" : "Tham gia server ngay nào!";
-        document.getElementById('btn-submit').innerText = isLoginMode ? "Đăng Nhập" : "Đăng Ký";
-    }
+    function toggleMode() { isLoginMode = !isLoginMode; document.getElementById('btn-submit').innerText = isLoginMode ? "Đăng Nhập" : "Đăng Ký"; }
     async function handleAuth() {
-        const u = document.getElementById('username').value;
-        const p = document.getElementById('password').value;
+        const u = document.getElementById('username').value; const p = document.getElementById('password').value;
         const endpoint = isLoginMode ? '/login' : '/register';
         try {
             const res = await fetch(endpoint, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({username: u, password: p}) });
             if(!res.ok) { document.getElementById('error-msg').innerText = await res.text(); return; }
-            if(isLoginMode) {
-                const data = await res.json();
-                localStorage.setItem('token', data.token); localStorage.setItem('username', data.username);
-                currentUser = data.username; token = data.token; showChatScreen();
-            } else { alert("Đăng ký xong! Hãy đăng nhập."); toggleMode(); }
+            if(isLoginMode) { const d = await res.json(); localStorage.setItem('token', d.token); localStorage.setItem('username', d.username); currentUser=d.username; token=d.token; showChatScreen(); }
+            else { alert("Đăng ký xong!"); toggleMode(); }
         } catch(e) { console.error(e); }
     }
 
     // --- APP LOGIC ---
     function showChatScreen() {
-        document.getElementById('auth-screen').style.display = 'none';
-        document.getElementById('app-screen').style.display = 'flex';
-        document.getElementById('my-username').innerText = currentUser;
-        document.getElementById('my-avatar').src = getAvatarUrl(currentUser);
+        document.getElementById('auth-screen').style.display = 'none'; document.getElementById('app-screen').style.display = 'flex';
+        document.getElementById('my-username').innerText = currentUser; document.getElementById('my-avatar').src = getAvatarUrl(currentUser);
         loadChannels(); loadMembers(); connectWebSocket();
     }
 
     async function loadChannels() {
         const res = await fetch('/channels', { headers: { 'Authorization': 'Bearer ' + token } });
         const channels = await res.json();
-        const listDiv = document.getElementById('channel-list-container');
-        listDiv.innerHTML = '';
-        channels.forEach((c, idx) => {
-            const div = document.createElement('div');
-            div.className = 'channel-item';
-            // Icon hash (#) cho text channel
-            div.innerHTML = `<span class="channel-icon"><i class="fa-solid fa-hashtag"></i></span> ${c.name}`;
-            div.onclick = () => switchChat('CHANNEL', c.id, c.name, div);
-            if(idx === 0 && chatMode === 'CHANNEL') { switchChat('CHANNEL', c.id, c.name, div); }
-            listDiv.appendChild(div);
+        const div = document.getElementById('channel-list-container'); div.innerHTML = '';
+        channels.forEach((c, i) => {
+            const el = document.createElement('div'); el.className = 'channel-item'; el.innerHTML = `<i class="fa-solid fa-hashtag" style="margin-right:6px"></i> ${c.name}`;
+            el.onclick = () => switchChat('CHANNEL', c.id, c.name, el);
+            if(i===0 && chatMode==='CHANNEL') switchChat('CHANNEL', c.id, c.name, el);
+            div.appendChild(el);
         });
     }
-
     async function loadMembers() {
         const res = await fetch('/users', { headers: { 'Authorization': 'Bearer ' + token } });
         const users = await res.json();
-        const container = document.getElementById('members-container');
-        container.innerHTML = '';
+        const div = document.getElementById('members-container'); div.innerHTML = '';
         users.forEach(u => {
-            if (u.username === currentUser) return;
-            const div = document.createElement('div');
-            div.className = 'member-item';
-            div.innerHTML = `
-                    <div class="member-avatar-wrapper">
-                        <img class="member-avatar" src="${getAvatarUrl(u.username)}">
-                        <div class="status-dot"><div class="dot-inner"></div></div>
-                    </div>
-                    <span class="member-name">${u.username}</span>
-                `;
-            div.onclick = () => switchChat('DM', u.username, u.username, div);
-            container.appendChild(div);
+            if(u.username===currentUser) return;
+            const el = document.createElement('div'); el.className = 'member-item';
+            el.innerHTML = `<img class="member-avatar" src="${getAvatarUrl(u.username)}">${u.username}`;
+            el.onclick = () => switchChat('DM', u.username, u.username, el);
+            div.appendChild(el);
         });
     }
 
-    async function switchChat(mode, target, name, element) {
-        chatMode = mode; chatTarget = target;
-
-        // UI Update
-        // Icon: # nếu là kênh, @ nếu là người
-        const iconClass = mode === 'CHANNEL' ? 'fa-hashtag' : 'fa-at';
-        document.getElementById('header-icon').className = `fa-solid ${iconClass}`;
+    async function switchChat(mode, target, name, el) {
+        chatMode=mode; chatTarget=target;
         document.getElementById('current-target-name').innerText = name;
-        document.getElementById('msgInput').placeholder = `Nhắn tin cho ${mode === 'CHANNEL' ? '#' : '@'}${name}`;
-
-        document.querySelectorAll('.channel-item, .member-item').forEach(el => el.classList.remove('active'));
-        if(element) element.classList.add('active');
+        document.getElementById('header-icon').className = mode==='CHANNEL' ? 'fa-solid fa-hashtag' : 'fa-solid fa-at';
+        document.querySelectorAll('.channel-item, .member-item').forEach(e=>e.classList.remove('active')); if(el) el.classList.add('active');
 
         document.getElementById('chat-container').innerHTML = '';
-        let url = mode === 'CHANNEL' ? `/history?channel_id=${target}` : `/dm_history?with_user=${target}`;
+        document.getElementById('typing-indicator').innerText = ''; // Xóa typing cũ khi chuyển kênh
+
+        let url = mode==='CHANNEL' ? `/history?channel_id=${target}` : `/dm_history?with_user=${target}`;
         const res = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } });
         const msgs = await res.json();
-        msgs.forEach(m => {
-            const user = m.username || m.sender;
-            appendMessage(user, m.content);
-        });
+        msgs.forEach(m => appendMessage(m.username||m.sender, m.content));
     }
 
     function connectWebSocket() {
-        const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-        ws = new WebSocket(protocol + "//" + location.host + "/ws?token=" + token);
+        ws = new WebSocket((location.protocol==='https:'?'wss:':'ws:') + "//" + location.host + "/ws?token=" + token);
         ws.onmessage = (event) => {
             const data = JSON.parse(event.data);
-            if (data.type === 'channel' && chatMode === 'CHANNEL' && data.channel_id === chatTarget) {
-                appendMessage(data.username, data.content);
+
+            // 1. XỬ LÝ TIN NHẮN CHAT
+            if ((data.type === 'channel' && chatMode === 'CHANNEL' && data.channel_id === chatTarget) ||
+                (data.type === 'dm' && ((data.receiver === currentUser && chatTarget === data.sender) || (data.sender === currentUser && chatTarget === data.receiver)))) {
+                appendMessage(data.username || data.sender, data.content);
+                // Có tin nhắn mới thì xóa dòng "đang gõ" đi cho đỡ vướng
+                showTyping(data.username || data.sender, false);
             }
-            else if (data.type === 'dm') {
-                const isRelevant = (data.receiver === currentUser && chatTarget === data.sender) || (data.sender === currentUser && chatTarget === data.receiver);
-                if (isRelevant) appendMessage(data.sender, data.content);
+
+            // 2. XỬ LÝ TYPING (MỚI)
+            else if (data.type === 'typing') {
+                // Logic lọc: Chỉ hiện nếu đúng kênh hoặc đúng người DM
+                if (chatMode === 'CHANNEL' && data.channel_id === chatTarget && data.username !== currentUser) {
+                    showTyping(data.username, true);
+                } else if (chatMode === 'DM' && data.sender === chatTarget && data.username !== currentUser) {
+                    showTyping(data.username, true);
+                }
             }
         };
         ws.onclose = () => setTimeout(connectWebSocket, 3000);
     }
 
-    function sendMsg() {
-        const input = document.getElementById('msgInput');
-        const text = input.value;
-        if (text && ws) {
-            let payload = chatMode === 'CHANNEL' ? JSON.stringify({ channel_id: chatTarget, content: text }) : JSON.stringify({ receiver: chatTarget, content: text });
-            ws.send(payload);
-            input.value = '';
+    // --- TYPING LOGIC ---
+    let lastTypedTime = 0;
+    function handleInput() {
+        // Giới hạn chỉ gửi 2 giây 1 lần để đỡ spam server (Throttle)
+        const now = Date.now();
+        if (now - lastTypedTime > 2000 && ws) {
+            let payload = {};
+            if (chatMode === 'CHANNEL') payload = { channel_id: chatTarget };
+            else payload = { receiver: chatTarget };
+
+            ws.send(JSON.stringify(payload)); // Gửi tín hiệu typing
+            lastTypedTime = now;
+        }
+    }
+
+    let typingClearTimer = null;
+    function showTyping(username, isTyping) {
+        const el = document.getElementById('typing-indicator');
+        if (!isTyping) {
+            el.innerHTML = '';
+            return;
+        }
+        // Hiển thị: "Vien đang soạn tin..."
+        el.innerHTML = `<span style="font-weight:800; color:white; margin-right:4px;">${username}</span> đang soạn tin<span class="typing-dots">...</span>`;
+
+        // Tự tắt sau 3 giây nếu không gõ tiếp
+        if (typingClearTimer) clearTimeout(typingClearTimer);
+        typingClearTimer = setTimeout(() => {
+            el.innerHTML = '';
+        }, 3000);
+    }
+
+    function handleKeyDown(e) {
+        if(e.key==='Enter') {
+            const text = e.target.value;
+            if(text && ws) {
+                let p = chatMode==='CHANNEL' ? {channel_id:chatTarget, content:text} : {receiver:chatTarget, content:text};
+                ws.send(JSON.stringify(p));
+                e.target.value = '';
+            }
         }
     }
 
     function appendMessage(user, text) {
-        const container = document.getElementById('chat-container');
-        const div = document.createElement('div');
-        div.className = 'message';
-
-        // Format time: "Today at 4:20 PM" (Giả lập)
-        const now = new Date();
-        const timeStr = `Hôm nay lúc ${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
-
-        div.innerHTML = `
-                <img class="msg-avatar" src="${getAvatarUrl(user)}">
-                <div class="msg-content-wrapper">
-                    <div class="msg-header">
-                        <span class="msg-username">${user}</span>
-                        <span class="msg-time">${timeStr}</span>
-                    </div>
-                    <div class="msg-text">${text}</div>
-                </div>
-            `;
-        container.appendChild(div);
-        container.scrollTop = container.scrollHeight;
+        const div = document.createElement('div'); div.className = 'message';
+        const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        div.innerHTML = `<img class="msg-avatar" src="${getAvatarUrl(user)}"><div><div style="display:flex; align-items:baseline;"><span class="msg-username">${user}</span><span style="font-size:11px; color:#949ba4; margin-left:8px;">Hôm nay lúc ${time}</span></div><div class="msg-text">${text}</div></div>`;
+        document.getElementById('chat-container').appendChild(div);
+        document.getElementById('chat-container').scrollTop = document.getElementById('chat-container').scrollHeight;
     }
 </script>
 </body>
