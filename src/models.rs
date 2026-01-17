@@ -106,3 +106,33 @@ pub struct CreateMessage {
     pub channel_id: i64,
     pub content: String,
 }
+#[derive(Serialize, Deserialize, Debug, Clone, FromRow)]
+pub struct PrivateMessage{
+    pub id: i64,
+    pub sender: String,
+    pub receiver: String,
+    pub content: String,
+}
+
+
+#[derive(Deserialize, Debug)]
+pub struct CreateDM{
+    pub receiver: String,
+    pub content: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(tag = "type")]
+pub enum WsMessage {
+    Channel {
+        channel_id: i64,
+        username: String,
+        content: String,
+    },
+    DM {
+        sender: String,
+        receiver: String,
+        content: String,
+    },
+}
+

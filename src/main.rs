@@ -12,8 +12,7 @@ mod handlers;
 mod models;
 
 // 👇 Sửa get_user thành get_users ở đây
-use handlers::{get_channels, get_history, get_users, handler_chat_ws, handler_hello, login, register};
-
+use handlers::{get_channels, get_history, get_users, get_dm_history, handler_chat_ws, handler_hello, login, register};
 #[derive(Clone)]
 struct AppState {
     pool: PgPool,
@@ -52,6 +51,7 @@ async fn main() {
         .route("/", get(handler_hello))
         .route("/ws", get(handler_chat_ws))
         .route("/history", get(get_history))
+        .route("/dm_history", get(get_dm_history))
         .route("/channels", get(get_channels))
         .route("/users", get(get_users)) // 👈 Sửa ở đây nữa
         .route("/register", axum::routing::post(register))
