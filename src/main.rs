@@ -8,11 +8,14 @@ use sqlx::PgPool;
 use std::env;
 use tokio::sync::broadcast;
 
+// 👇 1. Thêm dòng này
+use tower_http::services::ServeDir;
+
 mod handlers;
 mod models;
+use handlers::{get_channels, get_history, get_users, get_dm_history, handler_chat_ws, handler_hello, login, register, mark_channel_read};
 
-// 👇 Sửa get_user thành get_users ở đây
-use handlers::{get_channels, get_history, get_users, get_dm_history, handler_chat_ws, handler_hello, login, register};
+// ... (Giữ nguyên AppState và các struct khác) ...
 #[derive(Clone)]
 struct AppState {
     pool: PgPool,
@@ -42,18 +45,20 @@ async fn main() {
         .expect("Không thể kết nối DB");
 
     let (tx, _rx) = broadcast::channel(100);
-
     let app_state = AppState { pool, tx };
 
     println!("✅ Đã kết nối Neon Postgres!");
 
     let app = Router::new()
         .route("/", get(handler_hello))
+        // 👇 2. Đăng ký đường dẫn cho thư mục assets
+        .nest_service("/assets", ServeDir::new("assets"))
         .route("/ws", get(handler_chat_ws))
         .route("/history", get(get_history))
         .route("/dm_history", get(get_dm_history))
         .route("/channels", get(get_channels))
-        .route("/users", get(get_users)) // 👈 Sửa ở đây nữa
+        .route("/chanels/reads", axum::routing::post(mark_channel_read))
+        .route("/users", get(get_users))
         .route("/register", axum::routing::post(register))
         .route("/login", axum::routing::post(login))
         .with_state(app_state);

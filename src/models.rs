@@ -91,7 +91,8 @@ where
 #[derive(Serialize, Deserialize, Debug, Clone, FromRow)]
 pub struct Channel {
     pub id: i64,
-    pub name: String, // <-- Phải có dòng này thì SQL mới map được
+    pub name: String,
+    pub has_unread: Option<bool>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, FromRow)]
@@ -137,6 +138,7 @@ pub enum WsMessage {
         username: String,
         content: String,
     },
+    #[serde(rename = "dm")]
     DM {
         sender: String,
         receiver: String,
@@ -149,3 +151,8 @@ pub enum WsMessage {
     }
 }
 
+#[derive(Deserialize, Debug)]
+pub struct MarkReadRequest {
+    pub channel_id: i64,
+    pub last_read_msg_id: i64,
+}

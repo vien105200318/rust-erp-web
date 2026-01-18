@@ -20,7 +20,8 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use crate::models::{
     AuthUser, Claims, Message as MessageModel, LoginRequest, LoginResponse,
     RegisterRequest, User, Channel, CreateMessage, UserPublic,
-    PrivateMessage, CreateDM, WsMessage, ClientTyping
+    PrivateMessage, CreateDM, WsMessage, ClientTyping,
+    MarkReadRequest
 };
 
 const SECRET_KEY: &[u8] = b"SECRET_KEY";
@@ -61,10 +62,58 @@ pub async fn login(State(pool): State<PgPool>, Json(payload): Json<LoginRequest>
 }
 
 // --- 2. Public API (Channels & Users) ---
-pub async fn get_channels(_user: AuthUser, State(pool): State<PgPool>) -> Json<Vec<Channel>> {
-    let channels = sqlx::query_as!(Channel, "SELECT id, name FROM channels ORDER BY id ASC")
-        .fetch_all(&pool).await.unwrap_or(vec![]);
+pub async fn get_channels(user: AuthUser, State(pool): State<PgPool>) -> Json<Vec<Channel>> {
+    // Câu Query thần thánh:
+    // 1. Lấy tất cả kênh.
+    // 2. Tìm ID tin nhắn lớn nhất (mới nhất) trong mỗi kênh (max_msg_id).
+    // 3. Lấy ID tin nhắn user đã đọc (user_read_id).
+    // 4. So sánh: Nếu max_msg_id > user_read_id => Có tin chưa đọc (TRUE).
+    let channels = sqlx::query_as!(
+        Channel,
+        r#"
+        SELECT
+            c.id,
+            c.name,
+            (COALESCE(m.max_id, 0) > COALESCE(rs.last_read_msg_id, 0)) AS has_unread
+        FROM channels c
+        LEFT JOIN (
+            SELECT channel_id, MAX(id) as max_id
+            FROM messages
+            GROUP BY channel_id
+        ) m ON c.id = m.channel_id
+        LEFT JOIN channel_read_states rs ON c.id = rs.channel_id AND rs.username = $1
+        ORDER BY c.id ASC
+        "#,
+        user.username
+    )
+        .fetch_all(&pool)
+        .await
+        .unwrap_or(vec![]);
+
     Json(channels)
+}
+
+
+pub async fn mark_channel_read(
+    user: AuthUser,
+    State(pool): State<PgPool>,
+    Json(payload): Json<MarkReadRequest>,
+) -> impl IntoResponse {
+    let _ = sqlx::query!(
+        r#"
+        INSERT INTO channel_read_states (channel_id, username, last_read_msg_id)
+        VALUES ($1, $2, $3)
+        ON CONFLICT (channel_id, username)
+        DO UPDATE SET last_read_msg_id = $3
+        "#,
+        payload.channel_id,
+        user.username,
+        payload.last_read_msg_id
+    )
+        .execute(&pool)
+        .await;
+
+    StatusCode::OK
 }
 
 pub async fn get_users(_user: AuthUser, State(pool): State<PgPool>) -> Json<Vec<UserPublic>> {

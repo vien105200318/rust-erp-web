@@ -1,0 +1,19 @@
+/* --- Custom Scrollbar --- */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background-color: #2b2d31; border-radius: 4px; }
+::-webkit-scrollbar-thumb { background-color: #1a1b1e; border-radius: 4px; }
+
+/* --- Markdown Styles --- */
+.markdown a { color: #00a8fc; text-decoration: none; }
+.markdown a:hover { text-decoration: underline; }
+.markdown code { background-color: #2b2d31; padding: 2px 4px; border-radius: 3px; font-family: monospace; font-size: 0.85em; }
+.markdown pre { background-color: #2b2d31; padding: 12px; border-radius: 4px; margin-top: 6px; overflow-x: auto; border: 1px solid #1e1f22; }
+.markdown pre code { background-color: transparent; padding: 0; border: none; font-size: 13px; color: #dbdee1; }
+.markdown blockquote { border-left: 4px solid #4e5058; margin: 8px 0; padding-left: 12px; color: #949ba4; }
+.markdown p { margin-bottom: 0; }
+
+/* --- Animation Typing --- */
+.typing-dot { animation: blink 1.4s infinite both; }
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes blink { 0% { opacity: 0.2; } 20% { opacity: 1; } 100% { opacity: 0.2; } }
